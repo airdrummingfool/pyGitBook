@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Use this is generate log data for the default template
-#git log --pretty="format:[START commit][author=%an][time=%at][message=%s][hash=%H]" --shortstat > git-data.txt
+
 from __future__ import print_function, unicode_literals
 
 import re
@@ -9,11 +9,11 @@ import sys
 from datetime import datetime
 import argparse
 import webbrowser
-
+from subprocess import call
+import subprocess
 from jinja2 import Environment, FileSystemLoader
 
 from compat import get_unicode, set_unicode
-
 
 parser = argparse.ArgumentParser(description='Build html logbook for git')
 parser.add_argument('-i', '--infile', help='log file', default='git-data.txt',
@@ -35,6 +35,13 @@ ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 data = re.compile(r'\[(\w+=.*?)\](?=$|\[)')
 changes = re.compile(r'(\d+) files? changed(?:, (\d+) insertions?[(][+][)])?(?:, (\d+) deletions?)?')
 
+
+if not os.path.exists('git-data.txt') and os.path.exists(".git"):
+    os.system("git log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\" --shortstat > git-data.txt")
+if HEADING == 'RepoName':
+    proc = subprocess.Popen(["basename `git rev-parse --show-toplevel`"], stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    HEADING = out
 
 # Makes a big blob of CSS so you dont need to worry about external files.
 def get_css(template):
@@ -81,5 +88,6 @@ data = {'title': HEADING,
 with open(HTMLFILE, 'w') as f:
     f.write(set_unicode(template.render(data)))
 
-sys.exit()
+os.system("mv git-data.txt /tmp/")
+#sys.exit()
 webbrowser.open_new_tab('file://%s' % os.path.join(os.path.dirname(os.path.abspath(__file__)), HTMLFILE))
