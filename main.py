@@ -119,5 +119,7 @@ with open(html_output, 'w') as f:
     f.write(set_unicode(template.render(data)))
 
 os.system("mv git-data.txt /tmp/")
+
+print("Generated: ", os.path.join(os.path.dirname(os.path.abspath(__file__)), html_output))
 sys.exit()
 webbrowser.open_new_tab('file://%s' % os.path.join(os.path.dirname(os.path.abspath(__file__)), html_output))
