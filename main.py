@@ -16,6 +16,8 @@ from jinja2 import Environment, FileSystemLoader
 from compat import get_unicode, set_unicode
 
 parser = argparse.ArgumentParser(description='Build html logbook for git')
+parser.add_argument('-r', '--repository', help='path to a git repository',
+                    default='./')
 parser.add_argument('-i', '--infile', help='log file', default='git-data.txt',
                     dest='infile')
 parser.add_argument('-o', '--outfile', help='destination file',
@@ -28,6 +30,7 @@ args = parser.parse_args()
 DATAFILE = args.infile
 HTMLFILE = args.outfile
 HEADING = args.reponame
+REPOSITORY = args.repository
 TEMPLATE_DIR = os.path.join(os.path.abspath('templates'), 'github')
 
 ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
@@ -35,13 +38,30 @@ ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 data = re.compile(r'\[(\w+=.*?)\](?=$|\[)')
 changes = re.compile(r'(\d+) files? changed(?:, (\d+) insertions?[(][+][)])?(?:, (\d+) deletions?)?')
 
+print("Using ", REPOSITORY)
+def generate_git_data():
+    cmd = "git -C "
+    cmd += REPOSITORY
+    cmd += " log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\""
+    cmd += " --shortstat"
+    cmd += " > git-data.txt"
+    print("Will run: ", cmd)
+    os.system(cmd)
+
+def guess_repository_name():
+    cmd = "basename "
+    cmd += "`git -C "
+    cmd += REPOSITORY
+    cmd += " rev-parse --show-toplevel`"
+    print("Will run: ", cmd)
+    proc = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+    (out, err) = proc.communicate()
+    return out
 
 if not os.path.exists('git-data.txt') and os.path.exists(".git"):
-    os.system("git log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\" --shortstat > git-data.txt")
+    generate_git_data()
 if HEADING == 'RepoName':
-    proc = subprocess.Popen(["basename `git rev-parse --show-toplevel`"], stdout=subprocess.PIPE, shell=True)
-    (out, err) = proc.communicate()
-    HEADING = out
+    HEADING = guess_repository_name()
 
 # Makes a big blob of CSS so you dont need to worry about external files.
 def get_css(template):
