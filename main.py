@@ -27,31 +27,31 @@ parser.add_argument('-n', '--reponame', default='RepoName', dest='reponame',
 
 args = parser.parse_args()
 
-DATAFILE = args.infile
-HTMLFILE = args.outfile
-HEADING = args.reponame
-REPOSITORY = args.repository
-TEMPLATE_DIR = os.path.join(os.path.abspath('templates'), 'github')
+data_source = args.infile
+html_output = args.outfile
+repository_title = args.reponame
+repository_path = args.repository
+template_directory = os.path.join(os.path.abspath('templates'), 'github')
 
-ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+ENV = Environment(loader=FileSystemLoader(template_directory))
 
 data = re.compile(r'\[(\w+=.*?)\](?=$|\[)')
 changes = re.compile(r'(\d+) files? changed(?:, (\d+) insertions?[(][+][)])?(?:, (\d+) deletions?)?')
 
 def provide_local_repository():
-    repo = REPOSITORY.rsplit('/', 1)[1]
+    repo = repository_path.rsplit('/', 1)[1]
     cmd = "git clone "
-    cmd += REPOSITORY + " " + repo
+    cmd += repository_path + " " + repo
     os.system(cmd)
     return repo
 
-if REPOSITORY.startswith("http") or REPOSITORY.startswith("git://") or REPOSITORY.startswith("git@"):
-    REPOSITORY = provide_local_repository()
+if repository_path.startswith("http") or repository_path.startswith("git://") or repository_path.startswith("git@"):
+    repository_path = provide_local_repository()
 
-print("Using ", REPOSITORY)
+print("Using ", repository_path)
 def generate_git_data():
     cmd = "git -C "
-    cmd += REPOSITORY
+    cmd += repository_path
     cmd += " log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\""
     cmd += " --shortstat"
     cmd += " > git-data.txt"
@@ -61,7 +61,7 @@ def generate_git_data():
 def guess_repository_name():
     cmd = "basename "
     cmd += "`git -C "
-    cmd += REPOSITORY
+    cmd += repository_path
     cmd += " rev-parse --show-toplevel`"
     print("Will run: ", cmd)
     proc = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
@@ -70,8 +70,8 @@ def guess_repository_name():
 
 if not os.path.exists('git-data.txt') and os.path.exists(".git"):
     generate_git_data()
-if HEADING == 'RepoName':
-    HEADING = guess_repository_name()
+if repository_title == 'RepoName':
+    repository_title = guess_repository_name()
 
 # Makes a big blob of CSS so you dont need to worry about external files.
 def get_css(template):
@@ -84,7 +84,7 @@ def get_css(template):
     return css
 
 
-with open(DATAFILE) as f:
+with open(data_source) as f:
     r_commits = [x.strip().split('\n') for x in get_unicode(f.read()).split('\n[START commit]')]
 
 commits = []
@@ -111,13 +111,13 @@ for r_commit in r_commits:
 
 template = ENV.get_template('main.html')
 
-data = {'title': HEADING,
-        'style': get_css(TEMPLATE_DIR),
+data = {'title': repository_title,
+        'style': get_css(template_directory),
         'commits': commits}
 
-with open(HTMLFILE, 'w') as f:
+with open(html_output, 'w') as f:
     f.write(set_unicode(template.render(data)))
 
 os.system("mv git-data.txt /tmp/")
 sys.exit()
-webbrowser.open_new_tab('file://%s' % os.path.join(os.path.dirname(os.path.abspath(__file__)), HTMLFILE))
+webbrowser.open_new_tab('file://%s' % os.path.join(os.path.dirname(os.path.abspath(__file__)), html_output))
