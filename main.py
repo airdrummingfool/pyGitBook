@@ -119,5 +119,5 @@ with open(HTMLFILE, 'w') as f:
     f.write(set_unicode(template.render(data)))
 
 os.system("mv git-data.txt /tmp/")
-#sys.exit()
+sys.exit()
 webbrowser.open_new_tab('file://%s' % os.path.join(os.path.dirname(os.path.abspath(__file__)), HTMLFILE))
