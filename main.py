@@ -39,12 +39,13 @@ data = re.compile(r'\[(\w+=.*?)\](?=$|\[)')
 changes = re.compile(r'(\d+) files? changed(?:, (\d+) insertions?[(][+][)])?(?:, (\d+) deletions?)?')
 
 def provide_local_repository():
+    repo = REPOSITORY.rsplit('/', 1)[1]
     cmd = "git clone "
-    cmd += REPOSITORY
+    cmd += REPOSITORY + " " + repo
     os.system(cmd)
-    return REPOSITORY.rsplit('/', 1)[1]
+    return repo
 
-if REPOSITORY.startswith("http"):
+if REPOSITORY.startswith("http") or REPOSITORY.startswith("git://") or REPOSITORY.startswith("git@"):
     REPOSITORY = provide_local_repository()
 
 print("Using ", REPOSITORY)
