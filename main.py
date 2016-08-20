@@ -38,6 +38,15 @@ ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 data = re.compile(r'\[(\w+=.*?)\](?=$|\[)')
 changes = re.compile(r'(\d+) files? changed(?:, (\d+) insertions?[(][+][)])?(?:, (\d+) deletions?)?')
 
+def provide_local_repository():
+    cmd = "git clone "
+    cmd += REPOSITORY
+    os.system(cmd)
+    return REPOSITORY.rsplit('/', 1)[1]
+
+if REPOSITORY.startswith("http"):
+    REPOSITORY = provide_local_repository()
+
 print("Using ", REPOSITORY)
 def generate_git_data():
     cmd = "git -C "
