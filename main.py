@@ -99,6 +99,13 @@ for r_commit in r_commits:
         commit['time'] = datet.strftime('%I:%M:%S %p')
     commits.append(commit)
 
+# Provide data for grouping by date
+prev_c = commits[0]
+for c in commits[1:]:
+    c['new_date'] = (c['date'] != prev_c['date'])
+    prev_c = c
+commits[0]['new_date'] = True
+
 template = ENV.get_template('main.html')
 
 data = {'title': repository_title,
