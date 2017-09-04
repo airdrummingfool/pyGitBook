@@ -58,20 +58,10 @@ def generate_git_data():
     print("Will run: ", cmd)
     os.system(cmd)
 
-def guess_repository_name():
-    cmd = "basename "
-    cmd += "`git -C "
-    cmd += repository_path
-    cmd += " rev-parse --show-toplevel`"
-    print("Will run: ", cmd)
-    proc = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
-    (out, err) = proc.communicate()
-    return out
-
 if not os.path.exists('git-data.txt') and os.path.exists(".git"):
     generate_git_data()
 if repository_title == 'RepoName':
-    repository_title = guess_repository_name()
+    repository_title = os.path.basename(repository_path)
 
 # Makes a big blob of CSS so you dont need to worry about external files.
 def get_css(template):
