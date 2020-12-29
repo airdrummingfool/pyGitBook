@@ -24,6 +24,8 @@ parser.add_argument('-o', '--outfile', help='destination file',
                     default='gitBook.html', dest='outfile')
 parser.add_argument('-n', '--reponame', default='RepoName', dest='reponame',
                     help='Repository name')
+parser.add_argument('--reverse', dest='reverse', action='store_true',
+                    help='Reverse order of commits')
 
 args = parser.parse_args()
 
@@ -31,6 +33,7 @@ data_source = args.infile
 html_output = args.outfile
 repository_title = args.reponame
 repository_path = args.repository
+reverse_commit_order = args.reverse
 template_directory = os.path.join(os.path.abspath('templates'), 'github')
 
 ENV = Environment(loader=FileSystemLoader(template_directory))
@@ -97,7 +100,10 @@ for r_commit in r_commits:
         datet = datetime.fromtimestamp(int(commit['time']))
         commit['date'] = datet.strftime('%d-%m-%Y')
         commit['time'] = datet.strftime('%I:%M:%S %p')
-    commits.append(commit)
+    if reverse_commit_order:
+        commits.insert(0, commit)
+    else:
+        commits.append(commit)
 
 # Provide data for grouping by date
 prev_c = commits[0]
