@@ -50,6 +50,7 @@ html
 repeat-x;
   overflow:hidden;
   padding:0 .7em .7em;
+  page-break-inside: avoid;
 }
 
 #commit .envelope.selected
