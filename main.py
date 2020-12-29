@@ -53,9 +53,9 @@ if repository_path.startswith("http") or repository_path.startswith("git://") or
 
 print("Using ", repository_path)
 def generate_git_data():
-    cmd = "git -C "
+    cmd = "git -C \""
     cmd += repository_path
-    cmd += " log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\""
+    cmd += "\" log --pretty=\"format:[START commit][author=%an][time=%at][message=%s][hash=%H]\""
     cmd += " --shortstat"
     cmd += " > git-data.txt"
     print("Will run: ", cmd)
